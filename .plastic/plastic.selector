@@ -1,4 +1,4 @@
 repository "Cyber City Brawlers@jordanrtayl@cloud"
   path "/"
-    br "/main"
-    co "/main"
+    smartbranch "/main" 
+     
