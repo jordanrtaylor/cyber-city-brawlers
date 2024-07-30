@@ -12,16 +12,40 @@ public class GearShiftController : MonoBehaviour
     private Rigidbody rb;
     private float currentSpeed;
     private int currentGear = 1;
-    private float[] gearRatios = { 0.5f, 0.75f, 1f, 1.25f, 1.5f }; // Adjusted gear ratios
+    private float[] gearRatios = { 0.5f, 1f, 1.5f }; // Adjusted gear ratios for 3 gears
 
     void Start()
     {
         carController = GetComponent<CarController>();
         rb = GetComponent<Rigidbody>();
+
+        // Debug logs to identify null references
+        if (carController == null)
+        {
+            Debug.LogError("CarController is not assigned.");
+        }
+        if (rb == null)
+        {
+            Debug.LogError("Rigidbody is not assigned.");
+        }
+        if (speedText == null)
+        {
+            Debug.LogError("SpeedText is not assigned.");
+        }
+        if (gearText == null)
+        {
+            Debug.LogError("GearText is not assigned.");
+        }
     }
 
     void Update()
     {
+        if (carController == null || rb == null || speedText == null || gearText == null)
+        {
+            // Skip execution if any reference is missing
+            return;
+        }
+
         HandleGearShift();
         UpdateUI();
     }
@@ -37,13 +61,30 @@ public class GearShiftController : MonoBehaviour
             currentSpeed = speedCapMPH;
         }
 
-        if (currentSpeed > 20 * currentGear && currentGear < gearRatios.Length)
+        // Gear shifting based on the specified intervals
+        if (currentSpeed > 140 && currentGear < 3)
         {
-            currentGear++;
+            currentGear = 3;
         }
-        else if (currentSpeed < 15 * (currentGear - 1) && currentGear > 1)
+        else if (currentSpeed > 80 && currentGear < 2)
         {
-            currentGear--;
+            currentGear = 2;
+        }
+        else if (currentSpeed > 40 && currentGear < 1)
+        {
+            currentGear = 1;
+        }
+        else if (currentSpeed < 40 && currentGear > 1)
+        {
+            currentGear = 1;
+        }
+        else if (currentSpeed < 80 && currentGear > 2)
+        {
+            currentGear = 2;
+        }
+        else if (currentSpeed < 140 && currentGear > 3)
+        {
+            currentGear = 3;
         }
 
         carController.SetMotorTorque(baseMotorTorque * gearRatios[currentGear - 1]);
@@ -51,7 +92,10 @@ public class GearShiftController : MonoBehaviour
 
     private void UpdateUI()
     {
-        speedText.text = $"Speed: {currentSpeed:F1} MPH";
-        gearText.text = $"Gear: {currentGear}";
+        if (speedText != null && gearText != null)
+        {
+            speedText.text = $"Speed: {currentSpeed:F1} MPH";
+            gearText.text = $"Gear: {currentGear}";
+        }
     }
 }

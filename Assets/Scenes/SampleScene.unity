@@ -1044,7 +1044,7 @@ MonoBehaviour:
   baseMotorTorque: 2
   speedText: {fileID: 1696182879}
   gearText: {fileID: 1233214460}
-  speedCapMPH: 400
+  speedCapMPH: 200
 --- !u!1 &1696182877
 GameObject:
   m_ObjectHideFlags: 0
