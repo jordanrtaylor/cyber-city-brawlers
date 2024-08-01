@@ -1,5 +1,5 @@
 using UnityEngine;
-using TMPro; // Ensure you have TextMeshPro imported
+using TMPro;
 
 public class GearShiftController : MonoBehaviour
 {
@@ -12,7 +12,9 @@ public class GearShiftController : MonoBehaviour
     private Rigidbody rb;
     private float currentSpeed;
     private int currentGear = 1;
-    private float[] gearRatios = { 0.5f, 1f, 1.5f }; // Adjusted gear ratios for 3 gears
+    private float[] gearRatios = { 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f }; // More realistic gear ratios
+    private float shiftDelay = 0.5f; // Delay in seconds for gear shifts
+    private float nextShiftTime = 0f; // Time when the next gear shift can occur
 
     void Start()
     {
@@ -61,30 +63,40 @@ public class GearShiftController : MonoBehaviour
             currentSpeed = speedCapMPH;
         }
 
-        // Gear shifting based on the specified intervals
-        if (currentSpeed > 140 && currentGear < 3)
+        // Implement a delay before the next gear shift
+        if (Time.time >= nextShiftTime)
         {
-            currentGear = 3;
-        }
-        else if (currentSpeed > 80 && currentGear < 2)
-        {
-            currentGear = 2;
-        }
-        else if (currentSpeed > 40 && currentGear < 1)
-        {
-            currentGear = 1;
-        }
-        else if (currentSpeed < 40 && currentGear > 1)
-        {
-            currentGear = 1;
-        }
-        else if (currentSpeed < 80 && currentGear > 2)
-        {
-            currentGear = 2;
-        }
-        else if (currentSpeed < 140 && currentGear > 3)
-        {
-            currentGear = 3;
+            // Gear shifting based on the specified intervals
+            if (currentSpeed >= 140 && currentGear < 6)
+            {
+                currentGear++;
+                nextShiftTime = Time.time + shiftDelay;
+            }
+            else if (currentSpeed >= 100 && currentSpeed < 140 && currentGear != 5)
+            {
+                currentGear = 5;
+                nextShiftTime = Time.time + shiftDelay;
+            }
+            else if (currentSpeed >= 70 && currentSpeed < 100 && currentGear != 4)
+            {
+                currentGear = 4;
+                nextShiftTime = Time.time + shiftDelay;
+            }
+            else if (currentSpeed >= 50 && currentSpeed < 70 && currentGear != 3)
+            {
+                currentGear = 3;
+                nextShiftTime = Time.time + shiftDelay;
+            }
+            else if (currentSpeed >= 30 && currentSpeed < 50 && currentGear != 2)
+            {
+                currentGear = 2;
+                nextShiftTime = Time.time + shiftDelay;
+            }
+            else if (currentSpeed < 30 && currentGear != 1)
+            {
+                currentGear = 1;
+                nextShiftTime = Time.time + shiftDelay;
+            }
         }
 
         carController.SetMotorTorque(baseMotorTorque * gearRatios[currentGear - 1]);
