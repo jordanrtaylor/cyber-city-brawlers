@@ -3,29 +3,27 @@ using TMPro;
 
 public class GearShiftController : MonoBehaviour
 {
-    public float baseMotorTorque = 1500f; // Base Torque the Motor can apply to Wheel
+    public float baseMotorTorque = 25f; // Further reduced Torque
     public TextMeshProUGUI speedText;
     public TextMeshProUGUI gearText;
-    public float speedCapMPH = 400f; // Speed cap in MPH
+    public float speedCapMPH = 200f; // Speed cap in MPH
+    public float accelerationFactor = 5f; // Further reduced acceleration factor
+    public float reverseFactor = 4f; // Further reduced reverse factor
+    public float dragFactor = 5f; // Drag factor for controlling speed
 
-    private CarController carController;
     private Rigidbody rb;
     private float currentSpeed;
     private int currentGear = 1;
-    private float[] gearRatios = { 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f }; // More realistic gear ratios
-    private float shiftDelay = 0.5f; // Delay in seconds for gear shifts
+    private float[] gearRatios = { 0.2f, 0.4f, 0.6f, 0.8f, 1f }; // More gradual gear ratios
+    private float shiftDelay = 1f; // Increased delay for gear shifts
     private float nextShiftTime = 0f; // Time when the next gear shift can occur
+    private bool isGrounded;
 
     void Start()
     {
-        carController = GetComponent<CarController>();
         rb = GetComponent<Rigidbody>();
 
         // Debug logs to identify null references
-        if (carController == null)
-        {
-            Debug.LogError("CarController is not assigned.");
-        }
         if (rb == null)
         {
             Debug.LogError("Rigidbody is not assigned.");
@@ -42,14 +40,64 @@ public class GearShiftController : MonoBehaviour
 
     void Update()
     {
-        if (carController == null || rb == null || speedText == null || gearText == null)
+        if (rb == null || speedText == null || gearText == null)
         {
             // Skip execution if any reference is missing
             return;
         }
 
+        CheckIfGrounded();
+        HandleMotor();
         HandleGearShift();
         UpdateUI();
+    }
+
+    private void CheckIfGrounded()
+    {
+        // Cast multiple rays to check if the car is grounded
+        Vector3[] raycastPositions = new Vector3[]
+        {
+            transform.position + new Vector3(0, 0, 0), // Center
+            transform.position + new Vector3(1, 0, 1), // Front-right
+            transform.position + new Vector3(-1, 0, 1), // Front-left
+            transform.position + new Vector3(1, 0, -1), // Rear-right
+            transform.position + new Vector3(-1, 0, -1) // Rear-left
+        };
+
+        isGrounded = false;
+        foreach (var pos in raycastPositions)
+        {
+            if (Physics.Raycast(pos, -Vector3.up, 1.1f))
+            {
+                isGrounded = true;
+                break;
+            }
+        }
+        Debug.Log("Is Grounded: " + isGrounded);
+    }
+
+    private void HandleMotor()
+    {
+        float gas = Input.GetAxis("Gas"); // Assuming "Gas" is set up in the Input Manager for the right trigger
+        float brake = Input.GetAxis("Brake"); // Assuming "Brake" is set up in the Input Manager for the left trigger
+
+        if (isGrounded)
+        {
+            rb.AddForce(transform.forward * accelerationFactor * gas);
+            rb.AddForce(-transform.forward * reverseFactor * brake);
+        }
+
+        // Apply drag to slow down the car when no input is given
+        if (gas == 0 && brake == 0)
+        {
+            rb.drag = dragFactor;
+        }
+        else
+        {
+            rb.drag = 0;
+        }
+
+        Debug.Log("Gas: " + gas + ", Brake: " + brake + ", Drag: " + rb.drag);
     }
 
     private void HandleGearShift()
@@ -67,39 +115,41 @@ public class GearShiftController : MonoBehaviour
         if (Time.time >= nextShiftTime)
         {
             // Gear shifting based on the specified intervals
-            if (currentSpeed >= 140 && currentGear < 6)
+            if (currentSpeed >= 140 && currentGear < gearRatios.Length)
             {
                 currentGear++;
                 nextShiftTime = Time.time + shiftDelay;
             }
-            else if (currentSpeed >= 100 && currentSpeed < 140 && currentGear != 5)
-            {
-                currentGear = 5;
-                nextShiftTime = Time.time + shiftDelay;
-            }
-            else if (currentSpeed >= 70 && currentSpeed < 100 && currentGear != 4)
+            else if (currentSpeed >= 100 && currentSpeed < 140 && currentGear != 4)
             {
                 currentGear = 4;
                 nextShiftTime = Time.time + shiftDelay;
             }
-            else if (currentSpeed >= 50 && currentSpeed < 70 && currentGear != 3)
+            else if (currentSpeed >= 70 && currentSpeed < 100 && currentGear != 3)
             {
                 currentGear = 3;
                 nextShiftTime = Time.time + shiftDelay;
             }
-            else if (currentSpeed >= 30 && currentSpeed < 50 && currentGear != 2)
+            else if (currentSpeed >= 50 && currentSpeed < 70 && currentGear != 2)
             {
                 currentGear = 2;
                 nextShiftTime = Time.time + shiftDelay;
             }
-            else if (currentSpeed < 30 && currentGear != 1)
+            else if (currentSpeed < 50 && currentGear != 1)
             {
                 currentGear = 1;
                 nextShiftTime = Time.time + shiftDelay;
             }
         }
 
-        carController.SetMotorTorque(baseMotorTorque * gearRatios[currentGear - 1]);
+        // Set the motor torque based on the current gear
+        float motorTorque = baseMotorTorque * gearRatios[currentGear - 1];
+        if (isGrounded)
+        {
+            rb.AddForce(transform.forward * motorTorque);
+        }
+
+        Debug.Log("Current Gear: " + currentGear + ", Motor Torque: " + motorTorque + ", Current Speed: " + currentSpeed);
     }
 
     private void UpdateUI()

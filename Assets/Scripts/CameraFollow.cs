@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem; // Import the new Input System namespace
 
 public class CameraFollow : MonoBehaviour
 {
@@ -10,7 +11,7 @@ public class CameraFollow : MonoBehaviour
 
     void LateUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) || Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame) // Y button on Xbox controller
         {
             isRearView = !isRearView;
         }

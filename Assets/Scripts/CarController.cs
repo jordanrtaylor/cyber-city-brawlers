@@ -10,7 +10,6 @@ public class CarController : MonoBehaviour
     public Transform wheelBackRight; // Back Right Wheel Transform
 
     private Rigidbody rb;
-    private float motorTorque;
 
     void Start()
     {
@@ -23,20 +22,14 @@ public class CarController : MonoBehaviour
 
     void Update()
     {
-        HandleMotor();
         HandleSteering();
         UpdateWheelPoses();
     }
 
-    private void HandleMotor()
-    {
-        rb.AddForce(transform.forward * motorTorque * Input.GetAxis("Vertical"));
-    }
-
     private void HandleSteering()
     {
-        float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
-        Vector3 turn = new Vector3(0, steering, 0);
+        float steer = maxSteeringAngle * Input.GetAxis("Horizontal");
+        Vector3 turn = new Vector3(0, steer, 0);
         rb.AddTorque(turn);
     }
 
@@ -55,10 +48,5 @@ public class CarController : MonoBehaviour
 
         wheelTransform.position = pos;
         wheelTransform.rotation = quat;
-    }
-
-    public void SetMotorTorque(float torque)
-    {
-        motorTorque = torque;
     }
 }

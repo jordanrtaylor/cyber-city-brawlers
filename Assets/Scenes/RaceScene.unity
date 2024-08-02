@@ -44860,6 +44860,9 @@ MonoBehaviour:
   speedText: {fileID: 2110307631}
   gearText: {fileID: 1841734535}
   speedCapMPH: 200
+  accelerationFactor: 4
+  reverseFactor: 2
+  dragFactor: 5
 --- !u!114 &1580275241
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -44872,7 +44875,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d335a78a5bcde649972d875df09323f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSteeringAngle: 1
+  maxSteeringAngle: 1.5
   centerOfMass: {fileID: 1459918732}
   wheelFrontLeft: {fileID: 1580275235}
   wheelFrontRight: {fileID: 1580275233}
